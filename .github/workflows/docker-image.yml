@@ -40,10 +40,12 @@ jobs:
 
       - name: Tag Docker Image
         run: |
-          docker tag ben:${{ env.IMAGE_TAG }} ${{ secrets.REPO_URI }}:${{ env.IMAGE_TAG }}
-          docker tag ben:${{ env.IMAGE_TAG }} ${{ secrets.REPO_URI }}:latest
+          # 使用完整的 ECR 仓库 URI
+          docker tag ben:${{ env.IMAGE_TAG }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker tag ben:${{ env.IMAGE_TAG }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
 
       - name: Push Docker Image to ECR
         run: |
-          docker push ${{ secrets.REPO_URI }}:${{ env.IMAGE_TAG }}
-          docker push ${{ secrets.REPO_URI }}:latest
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+
