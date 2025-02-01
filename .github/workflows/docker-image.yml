@@ -1,51 +1,65 @@
-name: Build and Push Node.js Docker Image to AWS ECR
+name: Build and Push Docker Image to ECR
 
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+      # - name: Log in to Amazon ECR
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v1
+      #   with:
+      #     region: ${{ secrets.AWS_REGION }}
+      #     access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-southeast-2
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Log in to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
 
-      - name: Build Docker Image
+      - name: Build, tag, and push docker image to Amazon ECR Public
+        env:
+          REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          REGISTRY_ALIAS: a9h1i7z6
+          REPOSITORY: public.ecr.aws/e6g6b6e1/ben
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          image_tag=${{ github.sha }}
-          echo "IMAGE_TAG=$image_tag" >> $GITHUB_ENV 
-          docker build -t ben:$image_tag .
+          docker build -t $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
 
-      - name: Tag Docker Image
-        run: |
-          # 使用完整的 ECR 仓库 URI
-          docker tag ben:${{ env.IMAGE_TAG }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          docker tag ben:${{ env.IMAGE_TAG }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+      # - name: Build Docker image
+      #   run: |
+      #     docker build -t threemay/goexpertbackendtest .
 
-      - name: Push Docker Image to ECR
-        run: |
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
-
+      # - name: Build, tag, and push image to ECR
+      #   env:
+      #     ECR_REGISTRY: <your-aws-account-id>.dkr.ecr.<region>.amazonaws.com
+      #     ECR_REPOSITORY: <your-repository-name>
+      #     IMAGE_TAG: latest
+      #   run: |
+      #     # export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     # export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     # export AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}
+      #     aws sts get-caller-identity
+      #     aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/a9h1i7z6
+      #     docker build -t threemay/goexpertbackendtest:latest1 .
+      #     docker tag threemay/goexpertbackendtest:latest1 public.ecr.aws/a9h1i7z6/threemay/goexpertbackendtest:latest1
+      #     docker push public.ecr.aws/a9h1i7z6/threemay/goexpertbackendtest:latest1
