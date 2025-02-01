@@ -38,10 +38,15 @@ jobs:
           echo "IMAGE_TAG=$image_tag" >> $GITHUB_ENV 
           docker build -t cms-backend:$image_tag .
 
-      - name: Tag Docker Image
+      - name: Build, tag, and push docker image to Amazon ECR Public
+        env:
+          REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          REGISTRY_ALIAS: a9h1i7z6
+          REPOSITORY: public.ecr.aws/e6g6b6e1/ben
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker tag cms-backend:${{ env.IMAGE_TAG }} ${{ secrets.REPO_URI }}:${{ env.IMAGE_TAG }}
-          docker tag cms-backend:${{ env.IMAGE_TAG }} ${{ secrets.REPO_URI }}:latest
+          docker build -t $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
 
       - name: Push Docker Image to ECR
         run: |
