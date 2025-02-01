@@ -36,7 +36,7 @@ jobs:
         run: |
           image_tag=${{ github.sha }}
           echo "IMAGE_TAG=$image_tag" >> $GITHUB_ENV 
-          docker build -t cms-backend:$image_tag .
+          docker build -t ben:$image_tag .
 
       - name: Tag Docker Image
         run: |
