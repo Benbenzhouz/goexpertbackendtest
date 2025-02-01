@@ -45,7 +45,7 @@ jobs:
           docker build -t $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
 
-      # - name: Build Docker image1
+      # - name: Build Docker image
       #   run: |
       #     docker build -t threemay/goexpertbackendtest .
 
