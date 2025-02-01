@@ -32,25 +32,20 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Log in to Amazon ECR Public
-        id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@v1
-        with:
-          registry-type: public
-
-      - name: Build, Tag, and Push Docker Image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.REPO_URI }}
-          PUBLIC_REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
-          PUBLIC_REPOSITORY: public.ecr.aws/e6g6b6e1/ben
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Build Docker Image
         run: |
-          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
-          docker build -t $PUBLIC_REGISTRY/$PUBLIC_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REPOSITORY:latest
-          docker push $PUBLIC_REGISTRY/$PUBLIC_REPOSITORY:$IMAGE_TAG
-          docker push $PUBLIC_REGISTRY/$PUBLIC_REPOSITORY:latest
+          image_tag=${{ github.sha }}
+          echo "IMAGE_TAG=$image_tag" >> $GITHUB_ENV 
+          docker build -t cms-backend:$image_tag .
+
+      - name: Tag Docker Image
+        run: |
+          docker tag cms-backend:${{ env.IMAGE_TAG }} ${{ secrets.REPO_URI }}:${{ env.IMAGE_TAG }}
+          docker tag cms-backend:${{ env.IMAGE_TAG }} ${{ secrets.REPO_URI }}:latest
+
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ secrets.REPO_URI }}:${{ env.IMAGE_TAG }}
+          docker push ${{ secrets.REPO_URI }}:latest
 
 
