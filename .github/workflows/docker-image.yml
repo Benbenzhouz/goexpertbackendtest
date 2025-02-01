@@ -32,26 +32,25 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build Docker Image
-        run: |
-          image_tag=${{ github.sha }}
-          echo "IMAGE_TAG=$image_tag" >> $GITHUB_ENV 
-          docker build -t cms-backend:$image_tag .
+      - name: Log in to Amazon ECR Public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
 
-      - name: Build, tag, and push docker image to Amazon ECR Public
+      - name: Build, Tag, and Push Docker Image
         env:
-          REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
-          REGISTRY_ALIAS: a9h1i7z6
-          REPOSITORY: public.ecr.aws/e6g6b6e1/ben
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.REPO_URI }}
+          PUBLIC_REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          PUBLIC_REPOSITORY: public.ecr.aws/e6g6b6e1/ben
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Ensure that the repository name is concatenated with the REGISTRY
-          docker build -t $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG .
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $PUBLIC_REGISTRY/$PUBLIC_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REPOSITORY:latest
+          docker push $PUBLIC_REGISTRY/$PUBLIC_REPOSITORY:$IMAGE_TAG
+          docker push $PUBLIC_REGISTRY/$PUBLIC_REPOSITORY:latest
 
-      - name: Push Docker Image to ECR (latest)
-        run: |
-          # Make sure $REPO_URI and IMAGE_TAG are set correctly
-          docker push ${{ secrets.REPO_URI }}:${{ env.IMAGE_TAG }}
-          docker push ${{ secrets.REPO_URI }}:latest
 
