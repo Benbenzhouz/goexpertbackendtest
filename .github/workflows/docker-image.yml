@@ -40,8 +40,10 @@ jobs:
 
       - name: Tag Docker Image
         run: |
-          docker tag cms-backend:${{ env.IMAGE_TAG }} ${{ secrets.REPO_URI }}:${{ env.IMAGE_TAG }}
-          docker tag cms-backend:${{ env.IMAGE_TAG }} ${{ secrets.REPO_URI }}:latest
+           echo "Tagging image with commit hash ${GITHUB_SHA}..."
+           docker tag cms-backend:${{ env.IMAGE_TAG }} ${{ secrets.REPO_URI }}:${{ env.IMAGE_TAG }}
+           docker tag cms-backend:${{ env.IMAGE_TAG }} ${{ secrets.REPO_URI }}:latest
+
 
       - name: Push Docker Image to ECR
         run: |
