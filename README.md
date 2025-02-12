@@ -32,4 +32,4 @@ You may realize the backend service by simply an AWS EC2 instance, or to a compl
 **IMPORTANT**:
 The `.env` file contains some secrets which are concealed. You need to contact JR Academy to get the information, or the backend service will work improperly.
 
-* [澳洲IT](https:jiangren.com.au/) — 匠人学院，找工作，实习，工作内推，全栈班，DevOps学习1
+* [澳洲IT](https:jiangren.com.au/) — 匠人学院，找工作，实习，工作内推，全栈班，DevOps学习1。
